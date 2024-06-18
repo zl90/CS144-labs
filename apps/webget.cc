@@ -27,7 +27,7 @@ void get_URL( const string& host, const string& path )
     http_response += chunk;
   }
 
-  cout << http_response << '\n';
+  cout << http_response;
 
   socket->close();
 }
