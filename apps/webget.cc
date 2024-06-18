@@ -10,23 +10,26 @@ using namespace std;
 
 void get_URL( const string& host, const string& path )
 {
-  std::unique_ptr<TCPSocket> socket = std::make_unique<TCPSocket>();
-  const auto& host_address = Address( host, "http" );
-  const auto& local_address = Address( "127.0.0.1", 8080 );
+  unique_ptr<TCPSocket> socket = make_unique<TCPSocket>();
+  const string& service_name = "http";
+  const auto& host_address = Address( host, service_name );
 
-  socket->bind( local_address );
   socket->connect( host_address );
 
-  std::string http_request = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n";
-  std::vector<std::string> requests = { http_request };
+  string http_request = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
 
-  socket->write( requests );
+  socket->write( http_request );
 
-  std::string http_response = "";
+  string http_response;
   while ( !socket->eof() ) {
-    socket->read( http_response );
-    std::cout << http_response;
+    string chunk;
+    socket->read( chunk );
+    http_response += chunk;
   }
+
+  cout << http_response << '\n';
+
+  socket->close();
 }
 
 int main( int argc, char* argv[] )

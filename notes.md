@@ -52,3 +52,4 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
     - Use the `read` method from `Socket`.
     - Use the `eof` method from `Socket` to keep reading up until the stream ends.
   - First compilation: builds, but doesn't run. `connect: Invalid argument`.
+    - Realised what the problem was: the client `TCPSocket` should not be `bind`ing to a local address. Binding is used mainly for servers to listen/accept new connections.
