@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <span>
 #include <string>
 
@@ -9,8 +10,23 @@ using namespace std;
 
 void get_URL( const string& host, const string& path )
 {
-  cerr << "Function called: get_URL(" << host << ", " << path << ")\n";
-  cerr << "Warning: get_URL() has not been implemented yet.\n";
+  std::unique_ptr<TCPSocket> socket = std::make_unique<TCPSocket>();
+  const auto& host_address = Address( host, "http" );
+  const auto& local_address = Address( "127.0.0.1", 8080 );
+
+  socket->bind( local_address );
+  socket->connect( host_address );
+
+  std::string http_request = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n";
+  std::vector<std::string> requests = { http_request };
+
+  socket->write( requests );
+
+  std::string http_response = "";
+  while ( !socket->eof() ) {
+    socket->read( http_response );
+    std::cout << http_response;
+  }
 }
 
 int main( int argc, char* argv[] )

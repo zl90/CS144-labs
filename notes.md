@@ -36,7 +36,19 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
   - Need a `TCPSocket`.
   - Need to bind a socket and connect the socket to the address given.
     - Do I need to bind to a NIC?
-    - Do I need to somehow get the host/path as an IP Address? -> Yes. Use the `peer_address()` function.
+    - Do I need to somehow get the host/path as an IP Address? -> Yes. Use the constructor of the `Address` class. It can resolve an IP address from a hostname and service name.
+      - What is a service name?? Inspecting the `Address` constructor implementation I find this comment: ` //! \param[in] service name (from ``/etc/services``, e.g., "http" is port 80) `.
+      - `ls`ing this directory reveals: a file containing a bunch of service names and their port mappings. All defined by a company called the [Internet Assigned Numbers Authority](https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml). Cool.
+      - So basically we need to use the `http` service name here -> that's the port I would expect to find a web page.
+  - How do I get a local address to bind the socket to?
+    - Construct `Address` object from a local address string eg: "127.0.0.1" and a port number? I chose port 8080.
+    - Not sure what the sockaddr is -> will come back to this.
+  - Now that I've binded the socket to the local address I need to connect to the host address.
+    - Use the `connect()` function with the host address.
   - Need to send a GET request using HTTP/1.1.
-  - Need to read ALL data returned from the host (use a loop?).
+    - Now that I'm connected, how do I send data? Can I just write to a socket as if it was an output stream? No -> use the `write` function defined in the `FileDescriptor` class. Remember a socket is a file descriptor at its core.
+    - Need to send a string containing my HTTP request.
+  - Need to read ALL data returned from the host (use a loop).
     - Use the `read` method from `Socket`.
+    - Use the `eof` method from `Socket` to keep reading up until the stream ends.
+  - First compilation: builds, but doesn't run. `connect: Invalid argument`.
