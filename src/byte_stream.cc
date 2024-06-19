@@ -2,12 +2,11 @@
 
 using namespace std;
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), bytes_popped_(0), bytes_pushed_(0) {}
+ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), bytes_popped_(0), bytes_pushed_(0), is_closed_(false) {}
 
 bool Writer::is_closed() const
 {
-  // Your code here.
-  return {};
+  return is_closed_;
 }
 
 void Writer::push( string data )
@@ -19,13 +18,12 @@ void Writer::push( string data )
 
 void Writer::close()
 {
-  // Your code here.
+  is_closed_ = true;
 }
 
 uint64_t Writer::available_capacity() const
 {
-  // Your code here.
-  return {};
+  return capacity_ - stream_.size();
 }
 
 uint64_t Writer::bytes_pushed() const
@@ -35,8 +33,7 @@ uint64_t Writer::bytes_pushed() const
 
 bool Reader::is_finished() const
 {
-  // Your code here.
-  return {};
+  return is_closed_ && stream_.empty();
 }
 
 uint64_t Reader::bytes_popped() const
@@ -46,8 +43,10 @@ uint64_t Reader::bytes_popped() const
 
 string_view Reader::peek() const
 {
-  // Your code here.
-  return {};
+  auto front = stream_.front();
+  string s;
+  s += front;
+  return string_view(s);
 }
 
 void Reader::pop( uint64_t len )
@@ -58,6 +57,5 @@ void Reader::pop( uint64_t len )
 
 uint64_t Reader::bytes_buffered() const
 {
-  // Your code here.
-  return {};
+  return stream_.size();
 }

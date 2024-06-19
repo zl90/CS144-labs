@@ -28,6 +28,7 @@ protected:
   bool error_ {};
   uint64_t bytes_popped_;
   uint64_t bytes_pushed_;
+  bool is_closed_;
   std::queue<char> stream_;
 };
 

@@ -71,3 +71,4 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
 - We are given a handy `read()` helper function that lets us peek and pop from the stream into a string. It takes a "length" argument. This will obviously come in handy inside the `Reader` class.
 - Also need to figure out how to only write the appropriate amount of bytes to the stream (ie: just enough to fill the stream, but not so much that it exceeds its capacity).
 - How will the `writer_` and `reader_` members access the queue? Will they need to made a `friend` of the `ByteStream` class? -> This is handled in `byte_stream_helpers.cc` -> the `ByteStream` instance is just downcasted to a `Reader` or `Writer` type, so it will always have access to the queue.
+- `peek()` method: why does it require a `string_view` and how do I convert a `char` to a `string_view`?
