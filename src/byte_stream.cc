@@ -2,7 +2,7 @@
 
 using namespace std;
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ) {}
+ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), bytes_popped_(0), bytes_pushed_(0) {}
 
 bool Writer::is_closed() const
 {
@@ -30,8 +30,7 @@ uint64_t Writer::available_capacity() const
 
 uint64_t Writer::bytes_pushed() const
 {
-  // Your code here.
-  return {};
+  return bytes_pushed_;
 }
 
 bool Reader::is_finished() const
@@ -42,8 +41,7 @@ bool Reader::is_finished() const
 
 uint64_t Reader::bytes_popped() const
 {
-  // Your code here.
-  return {};
+  return bytes_popped_;
 }
 
 string_view Reader::peek() const

@@ -43,6 +43,7 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
   - How do I get a local address to bind the socket to?
     - Construct `Address` object from a local address string eg: "127.0.0.1" and a port number? I chose port 8080.
     - Not sure what the sockaddr is -> will come back to this.
+    - Turns out I didn't need to bind the port since binding is only for servers to listen/accept on a port, not for clients.
   - Now that I've binded the socket to the local address I need to connect to the host address.
     - Use the `connect()` function with the host address.
   - Need to send a GET request using HTTP/1.1.
@@ -53,3 +54,20 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
     - Use the `eof` method from `Socket` to keep reading up until the stream ends.
   - First compilation: builds, but doesn't run. `connect: Invalid argument`.
     - Realised what the problem was: the client `TCPSocket` should not be `bind`ing to a local address. Binding is used mainly for servers to listen/accept new connections.
+
+### Task 5: writing an in-memory reliable byte stream
+
+- The Transmission Control Protocol is arguably the most prevalent computer program on the planet.
+- Need to implement the methods in `byte_stream.cc`.
+- Looks like everything should be done through the `ByteStream` interface, including access to the `Reader` and `Writer` classes.
+- Some member variables are missing:
+  - Need a `bytes_popped` and `bytes_pushed` to keep track of how many cumulative bytes have been pushed into the stream and popped from the stream.
+  - Need a buffer of size `capacity_` stored on the stream itself. This should be implemented as a `std::queue` -> don't need to initialise the queue with a size, just limit it's size later.
+  - Need booleans to store when the stream has been "closed" (signal from the `Writer`) and "finished" (signal from the `Reader` where the stream is closed and fully popped).
+  - Need to store `reader_` and `writer_` data members too. Should these be `unique_ptr`s?
+    - Also need to think about constructors, destructors and assignment operators. To keep things simple I don't want them to be movable or copyable.
+    - Destructors: these have nothing to destruct. But the `ByteStream` class will. If I use `unique_ptr`s I shouldn't need to worry about this actually.
+- How should error handling be done? The implementation suggests it should be handled.
+- We are given a handy `read()` helper function that lets us peek and pop from the stream into a string. It takes a "length" argument. This will obviously come in handy inside the `Reader` class.
+- Also need to figure out how to only write the appropriate amount of bytes to the stream (ie: just enough to fill the stream, but not so much that it exceeds its capacity).
+- How will the `writer_` and `reader_` members access the queue? Will they need to made a `friend` of the `ByteStream` class? -> This is handled in `byte_stream_helpers.cc` -> the `ByteStream` instance is just downcasted to a `Reader` or `Writer` type, so it will always have access to the queue.
