@@ -18,6 +18,10 @@ void Writer::push( string data )
     return;
   }
 
+  if ( is_closed_ ) {
+    return;
+  }
+
   for ( const auto& character : data ) {
     stream_.push( character );
     bytes_pushed_++;
@@ -61,6 +65,10 @@ void Reader::pop( uint64_t len )
 {
   if ( bytes_buffered() < len ) {
     set_error();
+    return;
+  }
+
+  if ( is_finished() ) {
     return;
   }
 
