@@ -2,7 +2,9 @@
 
 using namespace std;
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), bytes_popped_(0), bytes_pushed_(0), is_closed_(false) {}
+ByteStream::ByteStream( uint64_t capacity )
+  : capacity_( capacity ), bytes_popped_( 0 ), bytes_pushed_( 0 ), is_closed_( false )
+{}
 
 bool Writer::is_closed() const
 {
@@ -11,9 +13,15 @@ bool Writer::is_closed() const
 
 void Writer::push( string data )
 {
-  // Your code here.
-  (void)data;
-  return;
+  if ( available_capacity() < data.size() ) {
+    set_error();
+    return;
+  }
+
+  for ( const auto& character : data ) {
+    stream_.push( character );
+    bytes_pushed_++;
+  }
 }
 
 void Writer::close()
@@ -46,7 +54,7 @@ string_view Reader::peek() const
   auto front = stream_.front();
   string s;
   s += front;
-  return string_view(s);
+  return string_view( s );
 }
 
 void Reader::pop( uint64_t len )
