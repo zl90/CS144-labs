@@ -76,3 +76,18 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
 - `peek()` method: why does it require a `string_view` and how do I convert a `char` to a `string_view`? -> Solution: I learned that a typical packet payload is ~100 bytes, enough to store an average line of HTML code, therefore I can store `string`s inside my queue, then easily convert that to a `string_view` in the `peek()` method. -> Realised this was a mistake because it won't easily let me calculate `bytes_buffered()`. `char`s it is.
 - `pop()` function is interesting because it seems pointless since we have the `read()` helper function, all the hard work is done for us. I just need to wrap the `read()` function by the looks of it. Not sure if there's a requirement to do anything with the `out` string like outputting it?
 - Decided to add guard clauses to the `push()` and `pop()` methods.
+
+#### Running tests on in-memory reliable byte stream
+
+- `byte_stream_capacity` test failed:
+
+```
+***** Unsuccessful Expectation: [buffer is empty] = false *****
+
+ExpectationViolation: The object should have had [buffer is empty] = false, but instead it was true.
+
+Exception: The test "overwrite" failed.
+```
+
+- Looking at the `capacity` test, it looks like our stream should **not** be throwing an error when an overwrite situation occurs. It should just drop the leftover data. Easy fix. -> Spoke too soon. This test revealed a stack overflow. -> Wow, turns out I have to re-write the entire program to store a string, all because the `peek()` function is const and requires returning a `string_view`, meaning I can't store `char`s inside a queue for easy popping and pushing, I have to store the buffer as a string... That hurts... I can't be the only one who had the idea of storing a queue of `char`s, this must have happened to other students.
+  - Unless.. can I just store the last `char` when I perform a `push()`...?

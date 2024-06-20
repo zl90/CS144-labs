@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <queue>
 #include <string>
 #include <string_view>
-#include <queue>
 
 class Reader;
 class Writer;
@@ -30,6 +30,7 @@ protected:
   uint64_t bytes_pushed_;
   bool is_closed_;
   std::queue<char> stream_;
+  std::string peek_buffer_ = "";
 };
 
 class Writer : public ByteStream
