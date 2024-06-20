@@ -89,5 +89,7 @@ ExpectationViolation: The object should have had [buffer is empty] = false, but 
 Exception: The test "overwrite" failed.
 ```
 
-- Looking at the `capacity` test, it looks like our stream should **not** be throwing an error when an overwrite situation occurs. It should just drop the leftover data. Easy fix. -> Spoke too soon. This test revealed a stack overflow. -> Wow, turns out I have to re-write the entire program to store a string, all because the `peek()` function is const and requires returning a `string_view`, meaning I can't store `char`s inside a queue for easy popping and pushing, I have to store the buffer as a string... That hurts... I can't be the only one who had the idea of storing a queue of `char`s, this must have happened to other students.
-  - Unless.. can I just store the last `char` when I perform a `push()`...?
+- Looking at the `capacity` test, it looks like our stream should **not** be throwing an error when an overwrite situation occurs. It should just drop the leftover data. Easy fix. -> Spoke too soon. This test revealed a stack overflow.
+  - Looks like I've written the `pop()` function completely wrong. That was probably the cause of the stack overflow...
+- Now all the tests are passing!!
+- Speed is ~0.2 Gbit/s. Can we improve anything?

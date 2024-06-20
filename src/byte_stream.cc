@@ -26,9 +26,10 @@ void Writer::push( string data )
     if ( available_capacity() > 0 ) {
       stream_.push( data[i] );
       bytes_pushed_++;
-      peek_buffer_ = data[i];
     }
   }
+
+  peek_buffer_ = stream_.front();
 }
 
 void Writer::close()
@@ -72,10 +73,17 @@ void Reader::pop( uint64_t len )
     return;
   }
 
-  string out;
-  read( *this, len, out );
+  for ( uint64_t i = 0; i < len; i++ ) {
+    stream_.pop();
+  }
+
   bytes_popped_ += len;
-  peek_buffer_ = stream_.front();
+
+  if ( stream_.empty() ) {
+    peek_buffer_ = "";
+  } else {
+    peek_buffer_ = stream_.front();
+  }
 }
 
 uint64_t Reader::bytes_buffered() const
