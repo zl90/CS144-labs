@@ -92,4 +92,4 @@ Exception: The test "overwrite" failed.
 - Looking at the `capacity` test, it looks like our stream should **not** be throwing an error when an overwrite situation occurs. It should just drop the leftover data. Easy fix. -> Spoke too soon. This test revealed a stack overflow.
   - Looks like I've written the `pop()` function completely wrong. That was probably the cause of the stack overflow...
 - Now all the tests are passing!!
-- Speed is ~0.2 Gbit/s. Can we improve anything?
+- Speed is ~0.2 Gbit/s
