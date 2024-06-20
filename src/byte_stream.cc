@@ -3,7 +3,7 @@
 using namespace std;
 
 ByteStream::ByteStream( uint64_t capacity )
-  : capacity_( capacity ), bytes_popped_( 0 ), bytes_pushed_( 0 ), is_closed_( false )
+  : capacity_( capacity ), bytes_popped_( 0 ), bytes_pushed_( 0 ), is_closed_( false ), stream_()
 {}
 
 bool Writer::is_closed() const
