@@ -59,8 +59,14 @@ string_view Reader::peek() const
 
 void Reader::pop( uint64_t len )
 {
-  // Your code here.
-  (void)len;
+  if ( bytes_buffered() < len ) {
+    set_error();
+    return;
+  }
+
+  string out;
+  read( *this, len, out );
+  bytes_popped_ += len;
 }
 
 uint64_t Reader::bytes_buffered() const
