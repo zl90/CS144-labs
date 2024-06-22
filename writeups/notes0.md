@@ -67,8 +67,8 @@ Listen on a port for a basic tcp connection (`netcat` and `telnet`) (communicate
   - Need to store `reader_` and `writer_` data members too. Should these be `unique_ptr`s?
     - Also need to think about constructors, destructors and assignment operators. To keep things simple I don't want them to be movable or copyable.
     - Destructors: these have nothing to destruct. But the `ByteStream` class will. If I use `unique_ptr`s I shouldn't need to worry about this actually.
-- How should error handling be done? The implementation suggests it should be handled.
-- We are given a handy `read()` helper function that lets us peek and pop from the stream into a string. It takes a "length" argument. This will obviously come in handy inside the `Reader` class.
+- How should error handling be done? The implementation suggests it should be handled. -> After further research, looks like this isn't required for this task.
+- We are given a handy `read()` helper function that lets us peek and pop from the stream into a string. It takes a "length" argument. -> Turns out this wasn't needed at all, at least for my implementation.
 - Also need to figure out how to only write the appropriate amount of bytes to the stream (ie: just enough to fill the stream, but not so much that it exceeds its capacity).
   - Problem is: what do we do with the leftover data once we've pushed all we can to the queue? Obviously we need to wait until more space in the queue is free, but doing that means we have to store the remaining data in another buffer.
   - Re-reading the spec: it looks handling this is not the job of the stream. The consumer of the `ByteStream` is the one who needs to do Flow Control. From what I can see, we should signal an error if the stream gets overloaded or is read from too many times.
