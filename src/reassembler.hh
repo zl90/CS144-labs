@@ -7,9 +7,7 @@ class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output, std::unordered_map<uint64_t, std::pair<std::string, bool>>&& buffer )
-    : output_( std::move( output ) ), buffer_( std::move( buffer ) )
-  {}
+  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ) {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -75,7 +73,7 @@ private:
 
   ByteStream output_; // the Reassembler writes to this ByteStream
   uint64_t bytes_pending_ = 0;
-  std::unordered_map<uint64_t, std::pair<std::string, bool>>
-    buffer_; // holds pending/out-of-order substrings, as well as their is_last_substring value. Key/value:
-             // index/{substring, is_last_substring}.
+  std::unordered_map<uint64_t, std::pair<std::string, bool>> buffer_
+    = {}; // holds pending/out-of-order substrings, as well as their is_last_substring value. Key/value:
+          // index/{substring, is_last_substring}.
 };

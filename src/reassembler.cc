@@ -104,7 +104,7 @@ bool Reassembler::attempt_insert_next_substring()
 
 void Reassembler::insert( uint64_t first_index, string data, bool is_last_substring )
 {
-  if ( data.length() == 0 || is_duplicate( first_index, data ) )
+  if ( is_duplicate( first_index, data ) )
     return;
 
   bool is_inserted = attempt_insert( first_index, data, is_last_substring );
