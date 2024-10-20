@@ -71,6 +71,9 @@ private:
    * valid substring to the stream. */
   bool attempt_insert_next_substring();
 
+  /** @desc Merges all overlapping substrings in the `buffer_`. */
+  void merge_overlapping_unassembled_substrings( uint64_t index );
+
   ByteStream output_; // the Reassembler writes to this ByteStream
   uint64_t bytes_pending_ = 0;
   std::unordered_map<uint64_t, std::pair<std::string, bool>> buffer_

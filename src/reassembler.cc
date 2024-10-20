@@ -1,4 +1,5 @@
 #include "reassembler.hh"
+#include <iostream>
 
 using namespace std;
 
@@ -22,6 +23,65 @@ bool Reassembler::is_in_order( uint64_t index )
   return output_.writer().bytes_pushed() == index;
 }
 
+void Reassembler::merge_overlapping_unassembled_substrings( uint64_t index )
+{
+  auto curr_it = buffer_.find( index );
+  if ( curr_it == buffer_.end() )
+    return;
+
+  // Start merging from the current substring
+  uint64_t curr_start = index;
+  uint64_t curr_end = curr_start + curr_it->second.first.length();
+  string merged_data = curr_it->second.first;
+  bool is_last_substring = curr_it->second.second;
+
+  // Iterate through the buffer and merge overlapping entries
+  auto merge_it = std::next( curr_it );
+  while ( merge_it != buffer_.end() ) {
+    uint64_t merge_index = merge_it->first;
+    const auto& merge_data = merge_it->second.first;
+
+    if ( merge_index == index ) {
+      ++merge_it;
+      continue;
+    }
+
+    // Check for overlap
+    if ( merge_index < curr_end ) {
+      // Calculate new boundaries
+      uint64_t new_start = std::min( curr_start, merge_index );
+      uint64_t new_end = std::max( curr_end, merge_index + merge_data.length() );
+
+      // Resize merged_data and fill it in
+      merged_data.resize( new_end - new_start, '\0' );
+      // Copy the existing merged_data
+      std::copy( merged_data.begin(), merged_data.begin() + curr_end - new_start, merged_data.begin() );
+
+      // Insert overlapping merge_data into the right position
+      if ( merge_index >= curr_start ) {
+        // Overlap on the right side
+        std::copy( merge_data.begin(), merge_data.end(), merged_data.begin() + merge_index - new_start );
+      } else {
+        // Overlap on the left side
+        std::copy( merge_data.begin(), merge_data.end(), merged_data.begin() + merge_index - new_start );
+      }
+
+      // Update the bytes pending
+      bytes_pending_ -= ( curr_it->second.first.length() + merge_data.length() - ( new_end - new_start ) );
+
+      // Update current entry
+      curr_it->second = { merged_data, is_last_substring || merge_it->second.second };
+
+      // Remove the merged entry
+      merge_it = buffer_.erase( merge_it );
+      curr_end = new_end; // Update curr_end for the next iteration
+    } else {
+      // No more overlaps, break the loop
+      break;
+    }
+  }
+}
+
 void Reassembler::store( uint64_t index, const string& data, bool is_last_substring )
 {
   if ( data.length() == 0 )
@@ -31,11 +91,15 @@ void Reassembler::store( uint64_t index, const string& data, bool is_last_substr
     bytes_pending_ += data.length();
     buffer_[index].first = data;
     buffer_[index].second = is_last_substring;
+    cout << "Inserting into buffer: " << data << " at index " << index << '\n';
   } else if ( data.length() > buffer_[index].first.length() ) {
     bytes_pending_ += ( data.length() - buffer_[index].first.length() );
     buffer_[index].first = data;
     buffer_[index].second = is_last_substring;
+    cout << "Inserting into buffer: " << data << " at index " << index << '\n';
   }
+
+  merge_overlapping_unassembled_substrings( index );
 }
 
 void Reassembler::selective_commit( uint64_t index, const string& data )
