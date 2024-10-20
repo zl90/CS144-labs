@@ -1,6 +1,7 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include <unordered_map>
 
 class Reassembler
 {
@@ -41,5 +42,31 @@ public:
   const Writer& writer() const { return output_.writer(); }
 
 private:
+  /** @desc Whether the data overlaps bytes that have already been committed to the stream */
+  bool is_overlapping( uint64_t index, const std::string& data );
+
+  /** @desc Whether the data has already been committed to the stream */
+  bool is_duplicate( uint64_t index, const std::string& data );
+
+  /** @desc Whether the data is unable to be committed to the stream due to missing preceding bytes */
+  bool is_out_of_order( uint64_t index );
+
+  /** @desc Whether the data can be committed to the stream */
+  bool is_in_order( uint64_t index );
+
+  /** @desc Attempts to buffer the data in the `buffer_`. This will only overwrite an existing entry with the key of
+   * `index` if the `data` is longer than the existing entry.
+   *
+   * Eg: If there is an existing entry at buffer_[3] with the value of `abc`, attempting to store `ab` at that entry
+   will fail, but storing `abcd` will succeed. */
+  void store( uint64_t index, const std::string& data );
+
+  /** @desc In the event of an overlapping substring, commits to the stream only the bytes that haven't already been
+  committed. */
+  void selective_commit( uint64_t index, const std::string& data );
+
+  uint64_t bytes_pending_ = 0;
+  std::unordered_map<uint64_t, std::string>
+    buffer_;          // holds pending/out-of-order substrings. Key/value: index/substring.
   ByteStream output_; // the Reassembler writes to this ByteStream
 };
