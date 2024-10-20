@@ -9,7 +9,7 @@ bool Reassembler::is_overlapping( uint64_t index, const string& data )
 
 bool Reassembler::is_duplicate( uint64_t index, const string& data )
 {
-  return output_.writer().bytes_pushed() >= index + data.length();
+  return data.length() > 0 && output_.writer().bytes_pushed() >= index + data.length();
 }
 
 bool Reassembler::is_out_of_order( uint64_t index )
@@ -24,6 +24,9 @@ bool Reassembler::is_in_order( uint64_t index )
 
 void Reassembler::store( uint64_t index, const string& data, bool is_last_substring )
 {
+  if ( data.length() == 0 )
+    return;
+
   if ( buffer_.find( index ) == buffer_.end() ) {
     bytes_pending_ += data.length();
     buffer_[index].first = data;
@@ -91,7 +94,7 @@ bool Reassembler::attempt_insert_next_substring()
 
         bool is_inserted = attempt_insert( curr_index, data, is_last_substring );
         if ( is_inserted ) {
-          bytes_pending_ -= output_.writer().bytes_pushed() - next_index;
+          bytes_pending_ -= output_.writer().bytes_pushed() - curr_index;
           buffer_.erase( curr_index );
           return true;
         }
