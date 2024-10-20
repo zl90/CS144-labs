@@ -59,14 +59,21 @@ private:
    *
    * Eg: If there is an existing entry at buffer_[3] with the value of `abc`, attempting to store `ab` at that entry
    will fail, but storing `abcd` will succeed. */
-  void store( uint64_t index, const std::string& data );
+  void store( uint64_t index, const std::string& data, bool is_last_substring );
 
   /** @desc In the event of an overlapping substring, commits to the stream only the bytes that haven't already been
   committed. */
   void selective_commit( uint64_t index, const std::string& data );
 
+  bool attempt_insert( uint64_t index, const std::string& data, bool is_last_substring );
+
+  /** @desc Checks to see if the buffer is currently holding the next valid substring. If so, it commits the next
+   * valid substring to the stream. */
+  bool attempt_insert_next_substring();
+
   uint64_t bytes_pending_ = 0;
-  std::unordered_map<uint64_t, std::string>
-    buffer_;          // holds pending/out-of-order substrings. Key/value: index/substring.
+  std::unordered_map<uint64_t, std::pair<std::string, bool>>
+    buffer_;          // holds pending/out-of-order substrings, as well as their is_last_substring value. Key/value:
+                      // index/{substring, is_last_substring}.
   ByteStream output_; // the Reassembler writes to this ByteStream
 };
