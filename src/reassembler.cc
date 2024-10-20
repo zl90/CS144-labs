@@ -45,7 +45,7 @@ void Reassembler::selective_commit( uint64_t index, const string& data )
 
 bool Reassembler::attempt_insert( uint64_t index, const string& data, bool is_last_substring )
 {
-  if ( is_out_of_order ) {
+  if ( is_out_of_order( index ) ) {
     store( index, data, is_last_substring );
     return false;
   }
