@@ -11,6 +11,11 @@ ByteStream::ByteStream( uint64_t capacity )
   , peek_buffer_( "" )
 {}
 
+uint64_t ByteStream::total_capacity() const
+{
+  return capacity_;
+}
+
 bool Writer::is_closed() const
 {
   return is_closed_;

@@ -23,62 +23,70 @@ bool Reassembler::is_in_order( uint64_t index )
   return output_.writer().bytes_pushed() == index;
 }
 
+struct Substring
+{
+  uint64_t index;
+  string data;
+  bool is_last_substring;
+};
+
 void Reassembler::merge_overlapping_unassembled_substrings( uint64_t index )
 {
-  auto curr_it = buffer_.find( index );
-  if ( curr_it == buffer_.end() )
-    return;
+  vector<uint64_t> indexes_to_erase;
+  vector<Substring> substrings_to_store;
+  bool did_merge = false;
+  uint64_t smallest_index;
 
-  // Start merging from the current substring
-  uint64_t curr_start = index;
-  uint64_t curr_end = curr_start + curr_it->second.first.length();
-  string merged_data = curr_it->second.first;
-  bool is_last_substring = curr_it->second.second;
-
-  // Iterate through the buffer and merge overlapping entries
-  auto merge_it = std::next( curr_it );
-  while ( merge_it != buffer_.end() ) {
-    uint64_t merge_index = merge_it->first;
-    const auto& merge_data = merge_it->second.first;
-
-    if ( merge_index == index ) {
-      ++merge_it;
+  for ( const auto& [merge_index, merge_info] : buffer_ ) {
+    if ( merge_index == index )
       continue;
-    }
+    auto merge_data = merge_info.first;
+    auto curr_start = index;
+    auto curr_end = index + buffer_[index].first.length();
+    auto merge_start = merge_index;
+    auto merge_end = merge_index + merge_data.length();
 
-    // Check for overlap
-    if ( merge_index < curr_end ) {
-      // Calculate new boundaries
-      uint64_t new_start = std::min( curr_start, merge_index );
-      uint64_t new_end = std::max( curr_end, merge_index + merge_data.length() );
-
-      // Resize merged_data and fill it in
-      merged_data.resize( new_end - new_start, '\0' );
-      // Copy the existing merged_data
-      std::copy( merged_data.begin(), merged_data.begin() + curr_end - new_start, merged_data.begin() );
-
-      // Insert overlapping merge_data into the right position
-      if ( merge_index >= curr_start ) {
-        // Overlap on the right side
-        std::copy( merge_data.begin(), merge_data.end(), merged_data.begin() + merge_index - new_start );
+    // Check general overlap
+    if ( curr_start < merge_end && merge_start < curr_end ) {
+      did_merge = true;
+      smallest_index = min( curr_start, merge_start );
+      // Check if one is engulfing the other
+      if ( curr_start <= merge_start && curr_end >= merge_end ) {
+        indexes_to_erase.push_back( merge_index );
+      } else if ( merge_start <= curr_start && merge_end >= curr_end ) {
+        indexes_to_erase.push_back( index );
       } else {
-        // Overlap on the left side
-        std::copy( merge_data.begin(), merge_data.end(), merged_data.begin() + merge_index - new_start );
+        // Handle a data merge
+        auto second_smallest_index = max( curr_start, merge_start );
+        string new_data = "";
+
+        for ( uint64_t i = 0; i < second_smallest_index - smallest_index; i++ ) {
+          new_data += buffer_[smallest_index].first[i];
+        }
+        for ( uint64_t i = 0; i < buffer_[second_smallest_index].first.length(); i++ ) {
+          new_data += buffer_[second_smallest_index].first[i];
+        }
+
+        substrings_to_store.push_back(
+          { smallest_index, new_data, buffer_[index].second || buffer_[merge_index].second } );
+        indexes_to_erase.push_back( index );
+        indexes_to_erase.push_back( merge_index );
       }
-
-      // Update the bytes pending
-      bytes_pending_ -= ( curr_it->second.first.length() + merge_data.length() - ( new_end - new_start ) );
-
-      // Update current entry
-      curr_it->second = { merged_data, is_last_substring || merge_it->second.second };
-
-      // Remove the merged entry
-      merge_it = buffer_.erase( merge_it );
-      curr_end = new_end; // Update curr_end for the next iteration
-    } else {
-      // No more overlaps, break the loop
-      break;
     }
+  }
+
+  for ( const auto& idx : indexes_to_erase ) {
+    bytes_pending_ -= buffer_[idx].first.length();
+    buffer_.erase( idx );
+  }
+
+  for ( const auto& substring : substrings_to_store ) {
+    buffer_[substring.index] = { substring.data, substring.is_last_substring };
+    bytes_pending_ += substring.data.length();
+  }
+
+  if ( did_merge ) {
+    merge_overlapping_unassembled_substrings( smallest_index );
   }
 }
 
@@ -87,16 +95,22 @@ void Reassembler::store( uint64_t index, const string& data, bool is_last_substr
   if ( data.length() == 0 )
     return;
 
+  // Ensure the data will not overflow the capacity of the stream
+  auto capacity = output_.total_capacity();
+  string new_data = data;
+  if ( index + data.length() > capacity ) {
+    // Silently drop the overflowing bytes
+    new_data = data.substr( 0, index + data.length() - capacity );
+  }
+
   if ( buffer_.find( index ) == buffer_.end() ) {
-    bytes_pending_ += data.length();
-    buffer_[index].first = data;
+    bytes_pending_ += new_data.length();
+    buffer_[index].first = new_data;
     buffer_[index].second = is_last_substring;
-    cout << "Inserting into buffer: " << data << " at index " << index << '\n';
-  } else if ( data.length() > buffer_[index].first.length() ) {
-    bytes_pending_ += ( data.length() - buffer_[index].first.length() );
-    buffer_[index].first = data;
+  } else if ( new_data.length() > buffer_[index].first.length() ) {
+    bytes_pending_ += ( new_data.length() - buffer_[index].first.length() );
+    buffer_[index].first = new_data;
     buffer_[index].second = is_last_substring;
-    cout << "Inserting into buffer: " << data << " at index " << index << '\n';
   }
 
   merge_overlapping_unassembled_substrings( index );
