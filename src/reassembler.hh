@@ -69,12 +69,12 @@ private:
 
   /** @desc Checks to see if the buffer is currently holding the next valid substring. If so, it commits the next
    * valid substring to the stream. */
-  bool attempt_insert_next_substring();
+  bool attempt_insert_from_buffer();
 
   /** @desc Closes the stream and clears the buffer. */
   void close();
 
-  /** @desc Merges all overlapping substrings in the `buffer_`. */
+  /** @desc Merges any substrings in the `buffer_` that overlap with the specified `index`. */
   void merge_overlapping_unassembled_substrings( uint64_t index );
 
   ByteStream output_; // the Reassembler writes to this ByteStream

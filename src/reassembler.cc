@@ -151,7 +151,7 @@ bool Reassembler::attempt_insert( uint64_t index, const string& data, bool is_la
   return true;
 }
 
-bool Reassembler::attempt_insert_next_substring()
+bool Reassembler::attempt_insert_from_buffer()
 {
   auto next_index = output_.writer().bytes_pushed();
 
@@ -200,9 +200,9 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   bool is_inserted = attempt_insert( first_index, data, is_last_substring );
 
   if ( is_inserted ) {
-    bool is_next_substring_inserted = attempt_insert_next_substring();
+    bool is_next_substring_inserted = attempt_insert_from_buffer();
     while ( is_next_substring_inserted ) {
-      is_next_substring_inserted = attempt_insert_next_substring();
+      is_next_substring_inserted = attempt_insert_from_buffer();
     }
   }
 }
