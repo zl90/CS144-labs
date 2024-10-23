@@ -107,11 +107,11 @@ void Reassembler::store( uint64_t index, const string& data, bool is_last_substr
   if ( buffer_.find( index ) == buffer_.end() ) {
     bytes_pending_ += new_data.length();
     buffer_[index].first = new_data;
-    buffer_[index].second = is_last_substring;
+    buffer_[index].second = new_data.length() == data.length() ? is_last_substring : false;
   } else if ( new_data.length() > buffer_[index].first.length() ) {
     bytes_pending_ += ( new_data.length() - buffer_[index].first.length() );
     buffer_[index].first = new_data;
-    buffer_[index].second = is_last_substring;
+    buffer_[index].second = new_data.length() == data.length() ? is_last_substring : false;
   }
 
   merge_overlapping_unassembled_substrings( index );
