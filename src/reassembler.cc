@@ -117,7 +117,14 @@ void Reassembler::store( uint64_t index, const string& data, bool is_last_substr
   merge_overlapping_unassembled_substrings( index );
 }
 
-void Reassembler::selective_commit( uint64_t index, const string& data )
+void Reassembler::close()
+{
+
+  buffer_.clear();
+  output_.writer().close();
+}
+
+void Reassembler::partial_insert( uint64_t index, const string& data )
 {
   auto num_bytes_to_commit = index + data.length() - output_.writer().bytes_pushed();
   auto data_to_commit = data.substr( data.length() - num_bytes_to_commit, num_bytes_to_commit );
@@ -133,15 +140,13 @@ bool Reassembler::attempt_insert( uint64_t index, const string& data, bool is_la
   }
 
   if ( is_overlapping( index, data ) ) {
-    selective_commit( index, data );
+    partial_insert( index, data );
   } else {
     output_.writer().push( data );
   }
 
-  if ( is_last_substring ) {
-    buffer_.clear();
-    output_.writer().close();
-  }
+  if ( is_last_substring )
+    close();
 
   return true;
 }
@@ -153,9 +158,12 @@ bool Reassembler::attempt_insert_next_substring()
   if ( buffer_.find( next_index ) != buffer_.end() ) {
     // found exact match in buffer, can commit to stream
     auto data = buffer_[next_index].first;
+    auto is_last_substring = buffer_[next_index].second;
     output_.writer().push( data );
     bytes_pending_ -= data.length();
     buffer_.erase( next_index );
+    if ( is_last_substring )
+      close();
     return true;
   } else {
     // search for overlapping substrings in buffer

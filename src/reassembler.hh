@@ -63,13 +63,16 @@ private:
 
   /** @desc In the event of an overlapping substring, commits to the stream only the bytes that haven't already been
   committed. */
-  void selective_commit( uint64_t index, const std::string& data );
+  void partial_insert( uint64_t index, const std::string& data );
 
   bool attempt_insert( uint64_t index, const std::string& data, bool is_last_substring );
 
   /** @desc Checks to see if the buffer is currently holding the next valid substring. If so, it commits the next
    * valid substring to the stream. */
   bool attempt_insert_next_substring();
+
+  /** @desc Closes the stream and clears the buffer. */
+  void close();
 
   /** @desc Merges all overlapping substrings in the `buffer_`. */
   void merge_overlapping_unassembled_substrings( uint64_t index );
