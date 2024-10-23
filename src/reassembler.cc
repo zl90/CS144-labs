@@ -1,5 +1,5 @@
 #include "reassembler.hh"
-#include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -92,11 +92,12 @@ void Reassembler::merge_overlapping_unassembled_substrings( uint64_t index )
 
 void Reassembler::store( uint64_t index, const string& data, bool is_last_substring )
 {
-  if ( data.length() == 0 )
+  auto capacity = output_.total_capacity();
+
+  if ( data.length() == 0 || index >= capacity )
     return;
 
   // Ensure the data will not overflow the capacity of the stream
-  auto capacity = output_.total_capacity();
   string new_data = data;
   if ( index + data.length() > capacity ) {
     // Silently drop the overflowing bytes
