@@ -30,4 +30,5 @@ public:
 
 protected:
   uint32_t raw_value_ {};
+  static const uint64_t largest_32_bit_integer = 1ULL << 32;
 };
