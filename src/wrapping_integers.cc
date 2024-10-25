@@ -1,4 +1,5 @@
 #include "wrapping_integers.hh"
+#include <iostream>
 
 using namespace std;
 
@@ -12,10 +13,15 @@ uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
 {
   uint32_t n = this->raw_value_;
   uint32_t isn = zero_point.raw_value_;
+  uint32_t num_wraps = checkpoint / ( UINT32_MAX );
 
-  if ( checkpoint < Wrap32::largest_32_bit_integer ) {
+  if ( num_wraps == 0 ) {
     return n - isn;
   }
 
-  return ( Wrap32::largest_32_bit_integer ) * ( checkpoint / ( Wrap32::largest_32_bit_integer ) ) + isn - n;
+  if ( n > isn ) {
+    return ( num_wraps * Wrap32::largest_32_bit_integer ) + n - isn;
+  }
+
+  return ( num_wraps * Wrap32::largest_32_bit_integer ) - n - isn;
 }
