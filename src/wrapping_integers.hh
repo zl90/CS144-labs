@@ -31,4 +31,7 @@ public:
 protected:
   uint32_t raw_value_ {};
   static const uint64_t largest_32_bit_integer = 1ULL << 32;
+
+private:
+  static int64_t min_dist_from_n_to_checkpoint( const Wrap32& n, const Wrap32& checkpoint );
 };
