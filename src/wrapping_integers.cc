@@ -12,11 +12,6 @@ Wrap32 Wrap32::wrap( uint64_t n, Wrap32 zero_point )
 
 uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
 {
-  ///////////////////////// 4294967296 wraps to zero!!!
-  ///////////////////////// 4294967295 is the last byte before the wrap.
-  ///////////////////////// UINT32_max = 4294967295
-  ///////////////////////// 1UL << 32 = 4294967296
-
   uint32_t n = this->raw_value_;
   uint32_t isn = zero_point.raw_value_;
   uint32_t num_wraps = checkpoint / ( UINT32_MAX );
@@ -25,22 +20,20 @@ uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
     return n - isn;
   }
 
-  // if ( n > isn ) {
-  //   return ( num_wraps * Wrap32::largest_32_bit_integer ) + n - isn;
-  // }
-
-  return (uint64_t)( ( num_wraps * INT32_MAX ) + min_dist_from_n_to_checkpoint( Wrap32( n ), Wrap32( checkpoint ) )
-                     - isn );
+  return (uint64_t)( checkpoint + min_dist_from_n_to_checkpoint( Wrap32( n ), checkpoint ) - isn );
 }
 
-int64_t Wrap32::min_dist_from_n_to_checkpoint( const Wrap32& n, const Wrap32& checkpoint )
+int64_t Wrap32::min_dist_from_n_to_checkpoint( const Wrap32& n, uint64_t checkpoint )
 {
-  uint32_t a = n.raw_value_ - checkpoint.raw_value_;
-  uint32_t b = checkpoint.raw_value_ - n.raw_value_;
+  Wrap32 wrapped_checkpoint = Wrap32( checkpoint );
+  uint32_t to_add, to_subtract;
 
-  if ( a < b ) {
-    return (int64_t)a;
+  if ( wrapped_checkpoint.raw_value_ > n.raw_value_ ) {
+    to_add = n.raw_value_ + Wrap32::largest_32_bit_integer - wrapped_checkpoint.raw_value_;
+    to_subtract = wrapped_checkpoint.raw_value_ - n.raw_value_;
   } else {
-    return (int64_t)b * -1;
+    to_add = n.raw_value_ - wrapped_checkpoint.raw_value_;
+    to_subtract = wrapped_checkpoint.raw_value_ + Wrap32::largest_32_bit_integer - n.raw_value_;
   }
+  return to_add < to_subtract ? to_add : (int64_t)to_subtract * -1;
 }
