@@ -14,14 +14,16 @@ uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
 {
   uint32_t n = this->raw_value_;
   uint32_t isn = zero_point.raw_value_;
-  // uint32_t num_wraps = checkpoint / ( UINT32_MAX );
-
-  // if ( checkpoint <= UINT32_MAX && n > isn ) {
-  //   return n - isn;
-  // }
 
   if ( checkpoint <= UINT32_MAX && n >= checkpoint ) {
-    return (uint32_t)( checkpoint + n - isn );
+    uint64_t a = (uint32_t)( n - isn );
+    uint64_t b = n + (uint64_t)Wrap32::largest_32_bit_integer - isn;
+
+    if ( abs( static_cast<int64_t>( checkpoint - a ) ) > abs( static_cast<int64_t>( checkpoint - b ) ) ) {
+      return b;
+    } else {
+      return a;
+    }
   }
 
   return (uint64_t)( checkpoint + min_dist_from_n_to_checkpoint( Wrap32( n ), checkpoint ) - isn );
