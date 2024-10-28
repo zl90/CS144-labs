@@ -14,11 +14,11 @@ uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
 {
   uint32_t n = this->raw_value_;
   uint32_t isn = zero_point.raw_value_;
-  uint32_t num_wraps = checkpoint / ( UINT32_MAX );
+  // uint32_t num_wraps = checkpoint / ( UINT32_MAX );
 
-  if ( num_wraps == 0 ) {
-    return n - isn;
-  }
+  // if ( checkpoint <= UINT32_MAX && n > isn ) {
+  //   return n - isn;
+  // }
 
   return (uint64_t)( checkpoint + min_dist_from_n_to_checkpoint( Wrap32( n ), checkpoint ) - isn );
 }
@@ -35,5 +35,10 @@ int64_t Wrap32::min_dist_from_n_to_checkpoint( const Wrap32& n, uint64_t checkpo
     to_add = n.raw_value_ - wrapped_checkpoint.raw_value_;
     to_subtract = wrapped_checkpoint.raw_value_ + Wrap32::largest_32_bit_integer - n.raw_value_;
   }
-  return to_add < to_subtract ? to_add : (int64_t)to_subtract * -1;
+
+  if ( checkpoint <= UINT32_MAX && n.raw_value_ > wrapped_checkpoint.raw_value_ ) {
+    return n.raw_value_;
+  }
+
+  return to_add < to_subtract ? (int64_t)to_add : (int64_t)to_subtract * -1;
 }
