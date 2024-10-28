@@ -15,7 +15,7 @@ uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const
   uint32_t n = this->raw_value_;
   uint32_t isn = zero_point.raw_value_;
 
-  if ( checkpoint <= UINT32_MAX && n >= checkpoint ) {
+  if ( checkpoint <= UINT32_MAX ) {
     uint64_t a = (uint32_t)( n - isn );
     uint64_t b = n + (uint64_t)Wrap32::largest_32_bit_integer - isn;
 
